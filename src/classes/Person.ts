@@ -5,9 +5,10 @@ class Person extends Phaser.GameObjects.Rectangle {
   speed: number = 300
   maxCountJumps: number = 2
   currentCountJumps: number = 0
-  heightJump: number = 300
+  heightJump: number = 350
   heightDefault: number = 32
   isJumping: boolean = false
+  jumpButton: Phaser.Input.Keyboard.Key
 
   constructor(scene: Phaser.Scene) {
     super(scene, 100, 200, 32, 32, 0xffffff);
@@ -17,7 +18,7 @@ class Person extends Phaser.GameObjects.Rectangle {
   private init() {
     this.createPhysics()
     this.createControl()
-    this.scene.events.on('update', this.jump, this)
+    this.jump()
   }
 
   public move() {
@@ -28,6 +29,7 @@ class Person extends Phaser.GameObjects.Rectangle {
 
   private createControl() {
     this.cursors = this.scene.input.keyboard!.createCursorKeys()
+    this.jumpButton = this.scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   private createPhysics(){
@@ -52,10 +54,17 @@ class Person extends Phaser.GameObjects.Rectangle {
   }
 
   private sitDown() {
+    const thisBody = this.body as Phaser.Physics.Arcade.Body
+    const sitDownHeight = this.heightDefault / 2
+
     if (this.cursors.down.isDown) {
-      this.height = this.heightDefault / 2
+      this.height = sitDownHeight
+      // @ts-ignore
+      thisBody.height = sitDownHeight
     } else {
       this.height = this.heightDefault
+      // @ts-ignore
+      thisBody.height = this.heightDefault
     }
   }
 
@@ -64,16 +73,20 @@ class Person extends Phaser.GameObjects.Rectangle {
       return
     }
 
-    console.log('this.body work jump')
-
     const thisBody = this.body as Phaser.Physics.Arcade.Body
 
-    if (this.cursors.space.isDown) {
-
+    if (Phaser.Input.Keyboard.JustDown(this.jumpButton)) {
+      console.log(this.currentCountJumps)
+      if (!this.isJumping) {
+        this.isJumping = true
+        this.currentCountJumps = 1
+        thisBody.setVelocityY(-this.heightJump)
+      }
     }
 
-    if (thisBody.touching.down) {
+    if (thisBody.touching.down){
       this.currentCountJumps = 0;
+      this.isJumping = false
     }
   }
 }
