@@ -12,8 +12,8 @@ class Person extends Phaser.GameObjects.Rectangle {
   isJumping: boolean = false
 
   // Controls
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys
   jumpButton: Phaser.Input.Keyboard.Key
+  keys: Record<'a' | 's' | 'd', Phaser.Input.Keyboard.Key>
 
   // Crouching
   isCrouching: boolean = false
@@ -35,8 +35,12 @@ class Person extends Phaser.GameObjects.Rectangle {
   }
 
   private createControl() {
-    this.cursors = this.scene.input.keyboard!.createCursorKeys()
-    this.jumpButton = this.scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.jumpButton = this.scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.keys = this.scene.input.keyboard?.addKeys({
+      a: Phaser.Input.Keyboard.KeyCodes.A,
+      d: Phaser.Input.Keyboard.KeyCodes.D,
+      s: Phaser.Input.Keyboard.KeyCodes.S,
+    }) as Record<'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
   }
 
   private createPhysics(){
@@ -54,10 +58,10 @@ class Person extends Phaser.GameObjects.Rectangle {
     const bodyThis = this.body as Phaser.Physics.Arcade.Body
     bodyThis.setVelocityX(0)
 
-    if (this.cursors.right.isDown) {
+    if (this.keys.d.isDown) {
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       bodyThis.setVelocityX(speedLocal)
-    } else if (this.cursors.left.isDown) {
+    } else if (this.keys.a.isDown) {
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       bodyThis.setVelocityX(-speedLocal)
     }
@@ -66,7 +70,7 @@ class Person extends Phaser.GameObjects.Rectangle {
   private crouching() {
     const thisBody = this.body as Phaser.Physics.Arcade.Body
 
-    if (this.cursors.down.isDown) {
+    if (this.keys.s.isDown) {
       this.isCrouching = true
       this.setScale(0.7)
       thisBody.setOffset(0, 1)
@@ -99,7 +103,6 @@ class Person extends Phaser.GameObjects.Rectangle {
       this.currentCountJumps = 0;
       this.isJumping = false
     }
-
   }
 }
 
