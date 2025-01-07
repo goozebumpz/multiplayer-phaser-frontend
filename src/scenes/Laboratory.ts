@@ -2,6 +2,7 @@ import Person from "../classes/Person.ts";
 
 class Laboratory extends Phaser.Scene {
     person: Person
+    textPosition: Phaser.GameObjects.Text
 
     constructor() {
         super("Laboratory");
@@ -25,10 +26,13 @@ class Laboratory extends Phaser.Scene {
         this.physics.add.collider(this.person, platform1)
         this.physics.add.collider(this.person, platform2)
         this.physics.add.collider(this.person, platform3)
+
+        this.textPosition = this.add.text(Number(this.game.config.width) / 2, 20, `Position x - ${this.person.x}, y - ${this.person.y}`)
     }
 
     update() {
         this.person.move()
+        this.textPosition.setText(`Position x - ${this.person.x}, y - ${this.person.y.toFixed(0)}`)
     }
 }
 

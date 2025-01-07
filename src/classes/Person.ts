@@ -1,15 +1,22 @@
 import Phaser from 'phaser'
 
 class Person extends Phaser.GameObjects.Rectangle {
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys
+  // Person properties
+  heightDefault: number = 32
   speed: number = 300
 
-  maxCountJumps: number = 3
+  // Jumps properties
+  maxCountJumps: number = 2
   currentCountJumps: number = 0
-  heightJump: number = 350
-  heightDefault: number = 32
+  heightJump: number = 400
   isJumping: boolean = false
+
+  // Controls
+  cursors: Phaser.Types.Input.Keyboard.CursorKeys
   jumpButton: Phaser.Input.Keyboard.Key
+
+  // Crouching
+  isCrouching: boolean = false
 
   constructor(scene: Phaser.Scene) {
     super(scene, 100, 200, 32, 32, 0xffffff);
@@ -19,12 +26,11 @@ class Person extends Phaser.GameObjects.Rectangle {
   private init() {
     this.createPhysics()
     this.createControl()
-    this.jump()
   }
 
   public move() {
     this.run()
-    this.sitDown()
+    this.crouching()
     this.jump()
   }
 
@@ -41,6 +47,7 @@ class Person extends Phaser.GameObjects.Rectangle {
 
   private run() {
     if (!this.body) {
+      console.error("Body not found on run !")
       return
     }
 
@@ -48,29 +55,31 @@ class Person extends Phaser.GameObjects.Rectangle {
     bodyThis.setVelocityX(0)
 
     if (this.cursors.right.isDown) {
-      bodyThis.setVelocityX(this.speed)
+      let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
+      bodyThis.setVelocityX(speedLocal)
     } else if (this.cursors.left.isDown) {
-      bodyThis.setVelocityX(-this.speed)
+      let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
+      bodyThis.setVelocityX(-speedLocal)
     }
   }
 
-  private sitDown() {
+  private crouching() {
     const thisBody = this.body as Phaser.Physics.Arcade.Body
-    const sitDownHeight = this.heightDefault / 2
 
     if (this.cursors.down.isDown) {
-      this.height = sitDownHeight
-      // @ts-ignore
-      thisBody.height = sitDownHeight
+      this.isCrouching = true
+      this.setScale(0.7)
+      thisBody.setOffset(0, 1)
     } else {
-      this.height = this.heightDefault
-      // @ts-ignore
-      thisBody.height = this.heightDefault
+      this.isCrouching = false
+      this.setScale(1)
+      thisBody.setOffset(0, -5)
     }
   }
 
   private jump() {
     if (!this.body) {
+      console.error("Body not found on jump !")
       return
     }
 
