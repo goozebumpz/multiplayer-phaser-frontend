@@ -4,7 +4,7 @@ class Person extends Phaser.GameObjects.Rectangle {
   cursors: Phaser.Types.Input.Keyboard.CursorKeys
   speed: number = 300
 
-  maxCountJumps: number = 2
+  maxCountJumps: number = 3
   currentCountJumps: number = 0
   heightJump: number = 350
   heightDefault: number = 32
@@ -75,21 +75,18 @@ class Person extends Phaser.GameObjects.Rectangle {
     }
 
     const thisBody = this.body as Phaser.Physics.Arcade.Body
-    const randNumber = Phaser.Math.Between(1, 100)
 
     if (Phaser.Input.Keyboard.JustDown(this.jumpButton)) {
-      console.log(`Workin ${randNumber}`)
       if (this.isJumping && this.currentCountJumps > 0 && this.currentCountJumps < this.maxCountJumps) {
-        thisBody.setVelocityY(-this.heightJump / this.currentCountJumps)
+        thisBody.setVelocityY(-this.heightJump / (this.currentCountJumps + 1))
         this.currentCountJumps++
-      } else if (thisBody.touching.down) {
+      } else if (!this.isJumping) {
         this.isJumping = true
         this.currentCountJumps = 1
         thisBody.touching.down = false
         thisBody.setVelocityY(-this.heightJump)
       }
     } else if (thisBody.touching.down && this.isJumping) {
-      console.log(`Stop ${randNumber}`)
       this.currentCountJumps = 0;
       this.isJumping = false
     }
