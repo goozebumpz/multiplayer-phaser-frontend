@@ -2,8 +2,8 @@ import Phaser from 'phaser'
 
 class Person extends Phaser.GameObjects.Rectangle {
   // Person properties
-  heightDefault: number = 32
   speed: number = 300
+  bodyThis: Phaser.Physics.Arcade.Body
 
   // Jumps properties
   maxCountJumps: number = 2
@@ -13,10 +13,17 @@ class Person extends Phaser.GameObjects.Rectangle {
 
   // Controls
   jumpButton: Phaser.Input.Keyboard.Key
-  keys: Record<'a' | 's' | 'd', Phaser.Input.Keyboard.Key>
+  keys: Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
 
   // Crouching
   isCrouching: boolean = false
+
+  // Attack
+  attackRectangle: Phaser.GameObjects.Rectangle
+  attackButton: Phaser.Input.Keyboard.Key
+
+  //Dodge
+  dodgeDistanceX: number = 25
 
   constructor(scene: Phaser.Scene) {
     super(scene, 100, 200, 32, 32, 0xffffff);
@@ -37,40 +44,39 @@ class Person extends Phaser.GameObjects.Rectangle {
   private createControl() {
     this.jumpButton = this.scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this.keys = this.scene.input.keyboard?.addKeys({
-      a: Phaser.Input.Keyboard.KeyCodes.A,
-      d: Phaser.Input.Keyboard.KeyCodes.D,
-      s: Phaser.Input.Keyboard.KeyCodes.S,
-    }) as Record<'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+      moveLeft: Phaser.Input.Keyboard.KeyCodes.A,
+      moveRight: Phaser.Input.Keyboard.KeyCodes.D,
+      crouch: Phaser.Input.Keyboard.KeyCodes.S,
+      jerk: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      jump: Phaser.Input.Keyboard.KeyCodes.SPACE
+    }) as Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
+    this.attackRectangle = this.scene.add.rectangle(this.x, this.y + 3, 5, 2, 0x555555)
   }
 
   private createPhysics(){
     this.scene.physics.add.existing<Person>(this, false)
-    const bodyThis = this.body as Phaser.Physics.Arcade.Body
-    bodyThis.collideWorldBounds = true
+    this.bodyThis = this.body as Phaser.Physics.Arcade.Body
+    this.bodyThis.collideWorldBounds = true
   }
 
   private run() {
-    if (!this.body) {
-      console.error("Body not found on run !")
-      return
-    }
+    this.bodyThis.setVelocityX(0)
 
-    const bodyThis = this.body as Phaser.Physics.Arcade.Body
-    bodyThis.setVelocityX(0)
-
-    if (this.keys.d.isDown) {
+    if (this.keys.moveRight.isDown) {
+      this.dodge(1)
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
-      bodyThis.setVelocityX(speedLocal)
-    } else if (this.keys.a.isDown) {
+      this.bodyThis.setVelocityX(speedLocal)
+    } else if (this.keys.moveLeft.isDown) {
+      this.dodge(-1)
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
-      bodyThis.setVelocityX(-speedLocal)
+      this.bodyThis.setVelocityX(-speedLocal)
     }
   }
 
   private crouching() {
     const thisBody = this.body as Phaser.Physics.Arcade.Body
 
-    if (this.keys.s.isDown) {
+    if (this.keys.crouch.isDown) {
       this.isCrouching = true
       this.setScale(0.7)
       thisBody.setOffset(0, 1)
@@ -82,29 +88,27 @@ class Person extends Phaser.GameObjects.Rectangle {
   }
 
   private jump() {
-    if (!this.body) {
-      console.error("Body not found on jump !")
-      return
-    }
-
-    const thisBody = this.body as Phaser.Physics.Arcade.Body
-
-    if (Phaser.Input.Keyboard.JustDown(this.jumpButton)) {
+    if (Phaser.Input.Keyboard.JustDown(this.keys.jump)) {
       if (this.isJumping && this.currentCountJumps > 0 && this.currentCountJumps < this.maxCountJumps) {
-        thisBody.setVelocityY(-this.heightJump / (this.currentCountJumps + 1))
+        this.bodyThis.setVelocityY(-this.heightJump / (this.currentCountJumps + 1))
         this.currentCountJumps++
       } else if (!this.isJumping) {
         this.isJumping = true
         this.currentCountJumps = 1
-        thisBody.touching.down = false
-        thisBody.setVelocityY(-this.heightJump)
+        this.bodyThis.touching.down = false
+        this.bodyThis.setVelocityY(-this.heightJump)
       }
-    } else if (thisBody.touching.down && this.isJumping) {
+    } else if (this.bodyThis.touching.down && this.isJumping) {
       this.currentCountJumps = 0;
       this.isJumping = false
     }
   }
-}
 
+  private dodge(direction: number) {
+    if (Phaser.Input.Keyboard.JustDown(this.keys.jerk)) {
+      this.setX((this.x + (this.dodgeDistanceX * direction)))
+    }
+  }
+}
 
 export default Person
