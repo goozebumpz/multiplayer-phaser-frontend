@@ -1,29 +1,20 @@
 import Phaser from 'phaser'
 
 class Person extends Phaser.GameObjects.Rectangle {
-  // Person properties
-  speed: number = 300
-  bodyThis: Phaser.Physics.Arcade.Body
-
-  // Jumps properties
-  maxCountJumps: number = 2
-  currentCountJumps: number = 0
-  heightJump: number = 400
-  isJumping: boolean = false
-
-  // Controls
+  private speed: number = 300
+  private bodyThis: Phaser.Physics.Arcade.Body
+  private maxCountJumps: number = 2
+  private currentCountJumps: number = 0
+  private heightJump: number = 400
+  private isJumping: boolean = false
   jumpButton: Phaser.Input.Keyboard.Key
   keys: Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
-
-  // Crouching
   isCrouching: boolean = false
-
-  // Attack
-  attackRectangle: Phaser.GameObjects.Rectangle
-  attackButton: Phaser.Input.Keyboard.Key
-
-  //Dodge
+  attackRectangle: Phaser.GameObjects.Rectangle | null
   dodgeDistanceX: number = 25
+  attackTimer: Phaser.Time.TimerEvent | null
+  direction: 1 | -1 = 1
+  enemies: unknown[]
 
   constructor(scene: Phaser.Scene) {
     super(scene, 100, 200, 32, 32, 0xffffff);
@@ -50,7 +41,12 @@ class Person extends Phaser.GameObjects.Rectangle {
       jerk: Phaser.Input.Keyboard.KeyCodes.SHIFT,
       jump: Phaser.Input.Keyboard.KeyCodes.SPACE
     }) as Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
-    this.attackRectangle = this.scene.add.rectangle(this.x, this.y + 3, 5, 2, 0x555555)
+
+    this.scene.input.on('pointerdown', () => {
+      this.attack()
+    })
+
+    this.setInteractive()
   }
 
   private createPhysics(){
@@ -64,10 +60,12 @@ class Person extends Phaser.GameObjects.Rectangle {
 
     if (this.keys.moveRight.isDown) {
       this.dodge(1)
+      this.direction = 1
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(speedLocal)
     } else if (this.keys.moveLeft.isDown) {
       this.dodge(-1)
+      this.direction = -1
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(-speedLocal)
     }
@@ -108,6 +106,30 @@ class Person extends Phaser.GameObjects.Rectangle {
     if (Phaser.Input.Keyboard.JustDown(this.keys.jerk)) {
       this.setX((this.x + (this.dodgeDistanceX * direction)))
     }
+  }
+
+  private attack() {
+    const widthAttackRectangle = 50
+    const positionAttackX = this.direction === 1
+      ? this.x + this.width / 2 + widthAttackRectangle / 2
+      : this.x - this.width / 2 - widthAttackRectangle / 2
+    this.attackRectangle = new Phaser.GameObjects.Rectangle(
+      this.scene,
+      positionAttackX,
+      this.y - this.height / 2,
+      widthAttackRectangle,
+      20
+    )
+    this.scene.physics.add.existing(this.attackRectangle, false)
+    const bodyAttackRectangle = this.attackRectangle.body as Phaser.Physics.Arcade.Body
+
+    bodyAttackRectangle.setAllowGravity(false)
+    this.attackTimer = this.scene.time.delayedCall(100, () => {
+      if (this.attackRectangle) {
+        this.attackRectangle.destroy();
+        this.attackRectangle = null
+      }
+    });
   }
 }
 
