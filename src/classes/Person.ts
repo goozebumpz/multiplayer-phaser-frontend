@@ -6,14 +6,15 @@ class Person extends Phaser.GameObjects.Rectangle {
   private maxCountJumps: number = 2
   private currentCountJumps: number = 0
   private heightJump: number = 400
-  private isJumping: boolean = false
+  isJumping: boolean = false
   jumpButton: Phaser.Input.Keyboard.Key
-  keys: Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
+  private keys: Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
   isCrouching: boolean = false
-  attackRectangle: Phaser.GameObjects.Rectangle | null
+  private attackRectangle: Phaser.GameObjects.Rectangle | null
   dodgeDistanceX: number = 25
   attackTimer: Phaser.Time.TimerEvent | null
-  direction: 1 | -1 = 1
+  private direction: 1 | -1 = 1
+  positionMouse: { x: number; y: number } = { x: 0, y: 0 }
   enemies: unknown[]
 
   constructor(scene: Phaser.Scene) {
@@ -44,6 +45,10 @@ class Person extends Phaser.GameObjects.Rectangle {
 
     this.scene.input.on('pointerdown', () => {
       this.attack()
+    })
+
+    this.scene.input.on('pointermove', (event: PointerEvent) => {
+      this.positionMouse = { x: event.x, y: event.y }
     })
 
     this.setInteractive()
@@ -113,6 +118,7 @@ class Person extends Phaser.GameObjects.Rectangle {
     const positionAttackX = this.direction === 1
       ? this.x + this.width / 2 + widthAttackRectangle / 2
       : this.x - this.width / 2 - widthAttackRectangle / 2
+
     this.attackRectangle = new Phaser.GameObjects.Rectangle(
       this.scene,
       positionAttackX,
@@ -122,9 +128,9 @@ class Person extends Phaser.GameObjects.Rectangle {
     )
     this.scene.physics.add.existing(this.attackRectangle, false)
     const bodyAttackRectangle = this.attackRectangle.body as Phaser.Physics.Arcade.Body
-
+    this.attackRectangle.angle = 0.3
     bodyAttackRectangle.setAllowGravity(false)
-    this.attackTimer = this.scene.time.delayedCall(100, () => {
+    this.attackTimer = this.scene.time.delayedCall(50, () => {
       if (this.attackRectangle) {
         this.attackRectangle.destroy();
         this.attackRectangle = null
