@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import {getAngle, getRelativePositionPoints} from "../utils/getAngle.ts";
 
 class Person extends Phaser.GameObjects.Rectangle {
   private speed: number = 300
@@ -13,9 +14,10 @@ class Person extends Phaser.GameObjects.Rectangle {
   private attackRectangle: Phaser.GameObjects.Rectangle | null
   dodgeDistanceX: number = 25
   attackTimer: Phaser.Time.TimerEvent | null
-  private direction: 1 | -1 = 1
   positionMouse: { x: number; y: number } = { x: 0, y: 0 }
-  enemies: unknown[]
+  isAttacking: boolean = false
+  enemies: Person[]
+  aim: Phaser.GameObjects.Text
 
   constructor(scene: Phaser.Scene) {
     super(scene, 100, 200, 32, 32, 0xffffff);
@@ -43,12 +45,14 @@ class Person extends Phaser.GameObjects.Rectangle {
       jump: Phaser.Input.Keyboard.KeyCodes.SPACE
     }) as Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
 
-    this.scene.input.on('pointerdown', () => {
-      this.attack()
-    })
+    this.aim = this.scene.add.text(this.positionMouse.x, this.positionMouse.y, "+")
+    this.scene.input.setDefaultCursor("none")
+
+    this.scene.input.on('pointerdown', this.attack, this)
 
     this.scene.input.on('pointermove', (event: PointerEvent) => {
       this.positionMouse = { x: event.x, y: event.y }
+      this.aim.setPosition(event.x, event.y)
     })
 
     this.setInteractive()
@@ -65,12 +69,10 @@ class Person extends Phaser.GameObjects.Rectangle {
 
     if (this.keys.moveRight.isDown) {
       this.dodge(1)
-      this.direction = 1
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(speedLocal)
     } else if (this.keys.moveLeft.isDown) {
       this.dodge(-1)
-      this.direction = -1
       let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(-speedLocal)
     }
@@ -114,10 +116,17 @@ class Person extends Phaser.GameObjects.Rectangle {
   }
 
   private attack() {
+    if (this.isAttacking) return
+
     const widthAttackRectangle = 50
-    const positionAttackX = this.direction === 1
-      ? this.x + this.width / 2 + widthAttackRectangle / 2
-      : this.x - this.width / 2 - widthAttackRectangle / 2
+    const firstIsFurther = getRelativePositionPoints(
+      { x: this.x, y: this.y },
+      { x: this.positionMouse.x, y: this.positionMouse.y }
+    )
+
+    const positionAttackX = firstIsFurther
+      ? this.x - this.width / 2 - widthAttackRectangle / 2
+      : this.x + this.width / 2 + widthAttackRectangle / 2
 
     this.attackRectangle = new Phaser.GameObjects.Rectangle(
       this.scene,
@@ -126,16 +135,25 @@ class Person extends Phaser.GameObjects.Rectangle {
       widthAttackRectangle,
       20
     )
+
+    getAngle(
+      { x: this.x, y: this.y },
+      { x: this.positionMouse.x, y: this.positionMouse.y }
+    )
+
     this.scene.physics.add.existing(this.attackRectangle, false)
+    this.isAttacking = true
     const bodyAttackRectangle = this.attackRectangle.body as Phaser.Physics.Arcade.Body
-    this.attackRectangle.angle = 0.3
+
     bodyAttackRectangle.setAllowGravity(false)
-    this.attackTimer = this.scene.time.delayedCall(50, () => {
+    const timeout = setTimeout(() => {
       if (this.attackRectangle) {
         this.attackRectangle.destroy();
         this.attackRectangle = null
+        clearTimeout(timeout)
+        this.isAttacking = false
       }
-    });
+    }, 100)
   }
 }
 
