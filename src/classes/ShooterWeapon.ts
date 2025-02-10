@@ -13,8 +13,6 @@ interface ShooterWeaponI {
   reload: () => void
 }
 
-console.log(Phaser.Physics.Arcade.Group, 'group')
-
 class ShooterWeapon extends Phaser.GameObjects.Rectangle implements ShooterWeaponI {
   name: string
   speedShoot: number

@@ -2,20 +2,19 @@ import Phaser from 'phaser'
 import {getAngle, getRelativePositionPoints} from "../utils/getAngle.ts";
 
 class Person extends Phaser.GameObjects.Rectangle {
-  private speed: number = 300
+  private speed = 300
   private bodyThis: Phaser.Physics.Arcade.Body
-  private maxCountJumps: number = 2
-  private currentCountJumps: number = 0
-  private heightJump: number = 400
-  isJumping: boolean = false
+  private maxCountJumps = 2
+  private currentCountJumps = 0
+  private heightJump = 400
+  isJumping = false
   jumpButton: Phaser.Input.Keyboard.Key
   private keys: Record<'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump', Phaser.Input.Keyboard.Key>
-  isCrouching: boolean = false
+  isCrouching = false
   private attackRectangle: Phaser.GameObjects.Rectangle | null
-  dodgeDistanceX: number = 25
-  attackTimer: Phaser.Time.TimerEvent | null
+  dodgeDistanceX = 25
   positionMouse: { x: number; y: number } = { x: 0, y: 0 }
-  isAttacking: boolean = false
+  isAttacking = false
   enemies: Person[]
   aim: Phaser.GameObjects.Text
 
@@ -29,7 +28,7 @@ class Person extends Phaser.GameObjects.Rectangle {
     this.createControl()
   }
 
-  public move() {
+  public move() { 
     this.run()
     this.crouching()
     this.jump()
@@ -69,11 +68,11 @@ class Person extends Phaser.GameObjects.Rectangle {
 
     if (this.keys.moveRight.isDown) {
       this.dodge(1)
-      let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
+      const speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(speedLocal)
     } else if (this.keys.moveLeft.isDown) {
       this.dodge(-1)
-      let speedLocal = this.isCrouching ? this.speed / 2 : this.speed
+      const speedLocal = this.isCrouching ? this.speed / 2 : this.speed
       this.bodyThis.setVelocityX(-speedLocal)
     }
   }

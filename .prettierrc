@@ -1,0 +1,25 @@
+{
+  "printWidth": 100,
+  "quoteProps": "consistent",
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 4,
+  "trailingComma": "es5",
+  "endOfLine": "auto",
+  "jsxBracketSameLine": false,
+  "arrowParens": "always",
+  "overrides": [
+    {
+      "files": ["*.json"],
+      "options": {
+        "tabWidth": 1
+      }
+    },
+    {
+      "files": ["*.{ts}"],
+      "options": {
+        "parser": "typescript"
+      }
+    }
+  ]
+}

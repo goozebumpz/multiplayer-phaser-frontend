@@ -1,6 +1,7 @@
 import Phaser from "phaser";
+import Person from "./Person.ts";
 
-type BulletConstructorT = {
+interface BulletConstructorT {
   scene: Phaser.Scene,
   x: number;
   y: number;
@@ -8,6 +9,7 @@ type BulletConstructorT = {
   height: number;
   speed: number
   damage: number;
+  sender: Person | null;
 }
 
 interface BulletI {
@@ -17,12 +19,14 @@ interface BulletI {
 class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
   damage: number
   speed: number
+  sender: Person | null
 
   constructor(constructor: BulletConstructorT) {
-    const { scene, x, y, width, height, speed, damage } = constructor
+    const { scene, x, y, width, height, speed, damage, sender } = constructor
     super(scene, x, y, width, height);
     this.speed = speed
     this.damage = damage
+    this.sender = sender
     this.init()
   }
 

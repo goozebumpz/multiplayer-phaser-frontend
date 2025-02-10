@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import Bullet from "./Bullet.ts";
 import ShooterWeapon from "./ShooterWeapon.ts";
 
-type GroupBulletsConstructor = {
+interface GroupBulletsConstructor {
   scene: Phaser.Scene
   amount: number;
 }
@@ -15,7 +15,8 @@ class Bullets extends Phaser.Physics.Arcade.Group {
 
   createBullet(shooterWeapon: ShooterWeapon) {
     this.add(new Bullet({
-      scene: this.scene,
+      sender: null,
+      scene: this.scene, 
       damage: 2.5,
       x: shooterWeapon.x,
       y: shooterWeapon.y,
