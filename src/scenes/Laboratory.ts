@@ -1,11 +1,13 @@
+import Phaser from 'phaser'
 import Person from "../classes/Person.ts";
+import { ScenesKeys } from './config.ts';
 
 class Laboratory extends Phaser.Scene {
     person: Person
     textPosition: Phaser.GameObjects.Text
 
     constructor() {
-        super("Laboratory");
+        super(ScenesKeys.LABORATORY);
     }
 
     create() {

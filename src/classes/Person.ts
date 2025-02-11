@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import {getAngle, getRelativePositionPoints} from "../utils/getAngle.ts";
 
-class Person extends Phaser.GameObjects.Rectangle {
+class Person extends Phaser.Physics.Arcade.Sprite {
   private speed = 300
   private bodyThis: Phaser.Physics.Arcade.Body
   private maxCountJumps = 2

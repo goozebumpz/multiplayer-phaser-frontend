@@ -16,7 +16,7 @@ class Bullets extends Phaser.Physics.Arcade.Group {
   createBullet(shooterWeapon: ShooterWeapon) {
     this.add(new Bullet({
       sender: null,
-      scene: this.scene, 
+      scene: this.scene,
       damage: 2.5,
       x: shooterWeapon.x,
       y: shooterWeapon.y,
