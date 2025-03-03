@@ -1,19 +1,19 @@
 import Phaser from 'phaser'
+import { KeysAtlas } from '../constants/keys-atlas.ts';
 import { ScenesKeys } from './config.ts';
-import AtlasIgor from '../assets/igor/igor.png'
-import JSONIgor from '../assets/igor/igor.png'
-
-export enum KeysAtlas {
-  IGOR = 'igor'
-}
+import IgorIdleAtlas from '../assets/igor/igor-idle.png'
+import IgorIdleJSON from '../assets/igor/igor-idle_atlas.json'
+import IgorRunAtlas from '../assets/igor/igor-run.png'
+import IgorRunJSON from '../assets/igor/igor-run_atlas.json'
 
 export default class PreloadScene extends Phaser.Scene {
   constructor() {
-    super(ScenesKeys.PRELOAD);
+    super({ key: ScenesKeys.PRELOAD });
   }
 
   preload() {
-    this.load.atlas(KeysAtlas.IGOR, AtlasIgor, JSONIgor)
+    this.load.atlas(KeysAtlas.IGOR_IDLE, IgorIdleAtlas, IgorIdleJSON)
+    this.load.atlas(KeysAtlas.IGOR_RUN, IgorRunAtlas , IgorRunJSON)
   }
 
   create() {
