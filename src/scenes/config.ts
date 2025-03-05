@@ -1,5 +1,4 @@
 export enum ScenesKeys {
-  "PRELOAD" = "preload",
-  "LABORATORY" = "laboratory",
+    PRELOAD = 'preload',
+    LABORATORY = 'laboratory',
 }
-
