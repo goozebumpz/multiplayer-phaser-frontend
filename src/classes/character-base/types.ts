@@ -8,3 +8,5 @@ export interface CharacterBaseConstructor {
     }
     frame?: string
 }
+
+export type CharacterBaseActions = 'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump'

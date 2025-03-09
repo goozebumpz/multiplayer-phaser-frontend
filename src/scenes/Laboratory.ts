@@ -13,9 +13,6 @@ class Laboratory extends Phaser.Scene {
 
     create() {
         this.person = new Igor(this, 50, 50)
-        const camera = this.cameras.main
-        camera.zoom = 1.3
-        camera.startFollow(this.person)
         this.createPlatforms()
     }
 

@@ -1,8 +1,7 @@
 import Phaser from 'phaser'
-import { getAngle, getRelativePositionPoints } from '../../utils/getAngle'
-import { CharacterBaseConstructor } from './types.ts'
-
-type PersonActions = 'moveLeft' | 'moveRight' | 'crouch' | 'jerk' | 'jump'
+import { CharacterBaseActions, CharacterBaseConstructor } from './types.ts'
+import AttackRectangle from '@classes/attack-rectangle/entity.ts'
+import { getRelativePositionPoints } from '@utils/getAngle.ts'
 
 class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private speed = 300
@@ -10,21 +9,19 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private maxCountJumps = 2
     private currentCountJumps = 0
     private heightJump = 400
-    private keys: Record<PersonActions, Phaser.Input.Keyboard.Key>
-    private attackRectangle: Phaser.GameObjects.Rectangle | null
+    private keys: Record<CharacterBaseActions, Phaser.Input.Keyboard.Key>
+    private attackRectangle: AttackRectangle
     private animationKeys: { idle: string; move: string }
     isJumping = false
-    jumpButton: Phaser.Input.Keyboard.Key
     isCrouching = false
     dodgeDistanceX = 100
-    positionMouse: { x: number; y: number } = { x: 0, y: 0 }
+    positionMouse: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0)
     isAttacking = false
     aim: Phaser.GameObjects.Text
-    // animation: Animation
     enemies: CharacterBase[] = []
 
-    constructor(params: CharacterBaseConstructor) {
-        const { scene, x, y, animations, frame } = params
+    constructor(constructorParams: CharacterBaseConstructor) {
+        const { scene, x, y, animations, frame } = constructorParams
         super(scene, x, y, animations.idle, frame)
         this.animationKeys = animations
         this.init()
@@ -32,8 +29,10 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
 
     private init() {
         this.createPhysics()
+        this.createAttackRectangle()
         this.createControl()
         this.createAnimations()
+        this.synchronizeFlip()
     }
 
     public move() {
@@ -43,21 +42,20 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private createControl() {
-        this.jumpButton = this.scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W)
         this.keys = this.scene.input.keyboard?.addKeys({
             moveLeft: Phaser.Input.Keyboard.KeyCodes.A,
             moveRight: Phaser.Input.Keyboard.KeyCodes.D,
             crouch: Phaser.Input.Keyboard.KeyCodes.S,
             jerk: Phaser.Input.Keyboard.KeyCodes.SHIFT,
             jump: Phaser.Input.Keyboard.KeyCodes.SPACE,
-        }) as Record<PersonActions, Phaser.Input.Keyboard.Key>
+        }) as Record<CharacterBaseActions, Phaser.Input.Keyboard.Key>
 
         this.aim = this.scene.add.text(this.positionMouse.x, this.positionMouse.y, '+')
 
         this.scene.input.setDefaultCursor('none')
         this.scene.input.on('pointerdown', this.attack, this)
         this.scene.input.on('pointermove', (event: PointerEvent) => {
-            this.positionMouse = { x: event.x, y: event.y }
+            this.positionMouse.set(event.x, event.y)
             this.aim.setPosition(event.x, event.y)
         })
 
@@ -69,6 +67,30 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing<CharacterBase>(this, false)
         this.bodyThis = this.body as Phaser.Physics.Arcade.Body
         this.bodyThis.setCollideWorldBounds(true)
+    }
+
+    private createAttackRectangle() {
+        this.attackRectangle = new AttackRectangle({
+            scene: this.scene,
+            target: this,
+            height: 20,
+            width: 20,
+        })
+    }
+
+    private synchronizeFlip() {
+        this.scene.events.on('update', () => {
+            const firstIsFurther = getRelativePositionPoints(
+                { x: this.x },
+                { x: this.positionMouse.x }
+            )
+
+            if (firstIsFurther) {
+                this.setFlipX(true)
+            } else {
+                this.setFlipX(false)
+            }
+        })
     }
 
     private run() {
@@ -93,6 +115,10 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
 
     private crouching() {
         const thisBody = this.body as Phaser.Physics.Arcade.Body
+
+        if (Phaser.Input.Keyboard.JustUp(this.keys.crouch)) {
+            this.setPosition(this.x, this.y - 1)
+        }
 
         if (this.keys.crouch.isDown) {
             this.isCrouching = true
@@ -134,40 +160,13 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
 
     private attack() {
         if (this.isAttacking) return
-
-        const widthAttackRectangle = 50
-        const firstIsFurther = getRelativePositionPoints(
-            { x: this.x, y: this.y },
-            { x: this.positionMouse.x, y: this.positionMouse.y }
-        )
-
-        const positionAttackX = firstIsFurther
-            ? this.x - this.width / 2 - widthAttackRectangle / 2
-            : this.x + this.width / 2 + widthAttackRectangle / 2
-
-        this.attackRectangle = new Phaser.GameObjects.Rectangle(
-            this.scene,
-            positionAttackX,
-            this.y - this.height / 2,
-            widthAttackRectangle,
-            20
-        )
-
-        getAngle({ x: this.x, y: this.y }, { x: this.positionMouse.x, y: this.positionMouse.y })
-
-        this.scene.physics.add.existing(this.attackRectangle, false)
+        this.attackRectangle.activate(this.positionMouse)
         this.isAttacking = true
-        const bodyAttackRectangle = this.attackRectangle.body as Phaser.Physics.Arcade.Body
 
-        bodyAttackRectangle.setAllowGravity(false)
-        const timeout = setTimeout(() => {
-            if (this.attackRectangle) {
-                this.attackRectangle.destroy()
-                this.attackRectangle = null
-                clearTimeout(timeout)
-                this.isAttacking = false
-            }
-        }, 100)
+        this.scene.time.delayedCall(100, () => {
+            this.isAttacking = false
+            this.attackRectangle.deactivate()
+        })
     }
 
     private createAnimations() {
