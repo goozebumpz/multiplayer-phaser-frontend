@@ -1,6 +1,6 @@
-import { CharacterBase } from '../character-base'
-import { getRelativePositionPoints } from '../../utils/getAngle.ts'
 import Phaser from 'phaser'
+import { CharacterBase } from '@classes/character-base'
+import { getRelativePositionPoints } from '@utils/getAngle.ts'
 
 type AttackRectangleConstructor = {
     scene: Phaser.Scene
@@ -24,11 +24,9 @@ class AttackRectangle extends Phaser.GameObjects.Rectangle {
     private init() {
         this.scene.add.existing(this)
         this.scene.physics.add.existing(this)
-        this.setActive(false)
-        this.setVisible(false)
-
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         bodyThis.setAllowGravity(false)
+        bodyThis.setEnable()
     }
 
     public activate(positionMouse: Phaser.Math.Vector2) {
@@ -38,20 +36,20 @@ class AttackRectangle extends Phaser.GameObjects.Rectangle {
         )
 
         const bodyWidthCharacter = this.character.body?.width || 0
-
         const positionAttackX = firstIsFurther
             ? this.character.x - bodyWidthCharacter
             : this.character.x + bodyWidthCharacter
+        const positionAttackY = this.character.y
 
         this.setPosition(positionAttackX, this.character.y)
-        this.setActive(true)
-        this.setVisible(true)
+
+        const bodyThis = this.body as Phaser.Physics.Arcade.Body
+        bodyThis.x = positionAttackX
+        bodyThis.y = positionAttackY
+        bodyThis.setEnable(true)
     }
 
     public deactivate() {
-        this.setActive(false)
-        this.setVisible(false)
-
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         bodyThis.setEnable(false)
     }

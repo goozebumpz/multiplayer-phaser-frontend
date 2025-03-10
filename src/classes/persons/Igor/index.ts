@@ -1,5 +1,5 @@
+import { KeysAtlas } from '@constants/keys-atlas.ts'
 import { CharacterBase } from '../../character-base'
-import { KeysAtlas } from '../../../constants/keys-atlas.ts'
 
 export class Igor extends CharacterBase {
     constructor(scene: Phaser.Scene, x: number, y: number) {

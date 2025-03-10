@@ -1,7 +1,8 @@
 import Phaser from 'phaser'
-import { CharacterBaseActions, CharacterBaseConstructor } from './types.ts'
-import AttackRectangle from '@classes/attack-rectangle/entity.ts'
 import { getRelativePositionPoints } from '@utils/getAngle.ts'
+import { AttackRectangle } from '@classes/attack-rectangle'
+import { CharacterBaseActions, CharacterBaseConstructor } from './types.ts'
+import Health from '@classes/health/entity.ts'
 
 class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private speed = 300
@@ -14,17 +15,19 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private animationKeys: { idle: string; move: string }
     isJumping = false
     isCrouching = false
-    dodgeDistanceX = 100
+    dodgeDistanceX = 20
     positionMouse: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0)
     isAttacking = false
     aim: Phaser.GameObjects.Text
     enemies: CharacterBase[] = []
+    health: Health
 
     constructor(constructorParams: CharacterBaseConstructor) {
         const { scene, x, y, animations, frame } = constructorParams
         super(scene, x, y, animations.idle, frame)
         this.animationKeys = animations
         this.init()
+        this.health = new Health({ scene, target: this, health: 200 })
     }
 
     private init() {
@@ -39,6 +42,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.run()
         this.crouching()
         this.jump()
+        this.health.attachToTarget()
     }
 
     private createControl() {
@@ -163,7 +167,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.attackRectangle.activate(this.positionMouse)
         this.isAttacking = true
 
-        this.scene.time.delayedCall(100, () => {
+        this.scene.time.delayedCall(10, () => {
             this.isAttacking = false
             this.attackRectangle.deactivate()
         })
