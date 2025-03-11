@@ -1,8 +1,9 @@
 import Phaser from 'phaser'
 import { getRelativePositionPoints } from '@utils/getAngle.ts'
 import { AttackRectangle } from '@classes/attack-rectangle'
-import { CharacterBaseActions, CharacterBaseConstructor } from './types.ts'
 import Health from '@classes/health/entity.ts'
+import { ControlCharacterHandler } from '@classes/control-character-handler'
+import { CharacterBaseConstructor } from './types.ts'
 
 class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private speed = 300
@@ -10,9 +11,9 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private maxCountJumps = 2
     private currentCountJumps = 0
     private heightJump = 400
-    private keys: Record<CharacterBaseActions, Phaser.Input.Keyboard.Key>
     private attackRectangle: AttackRectangle
     private animationKeys: { idle: string; move: string }
+    private controlHandler: ControlCharacterHandler
     isJumping = false
     isCrouching = false
     dodgeDistanceX = 20
@@ -21,6 +22,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     aim: Phaser.GameObjects.Text
     enemies: CharacterBase[] = []
     health: Health
+    attackDamage: number = 20
 
     constructor(constructorParams: CharacterBaseConstructor) {
         const { scene, x, y, animations, frame } = constructorParams
@@ -46,21 +48,14 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private createControl() {
-        this.keys = this.scene.input.keyboard?.addKeys({
-            moveLeft: Phaser.Input.Keyboard.KeyCodes.A,
-            moveRight: Phaser.Input.Keyboard.KeyCodes.D,
-            crouch: Phaser.Input.Keyboard.KeyCodes.S,
-            jerk: Phaser.Input.Keyboard.KeyCodes.SHIFT,
-            jump: Phaser.Input.Keyboard.KeyCodes.SPACE,
-        }) as Record<CharacterBaseActions, Phaser.Input.Keyboard.Key>
-
+        this.controlHandler = new ControlCharacterHandler({ scene: this.scene })
         this.aim = this.scene.add.text(this.positionMouse.x, this.positionMouse.y, '+')
-
         this.scene.input.setDefaultCursor('none')
         this.scene.input.on('pointerdown', this.attack, this)
         this.scene.input.on('pointermove', (event: PointerEvent) => {
             this.positionMouse.set(event.x, event.y)
             this.aim.setPosition(event.x, event.y)
+            this.synchronizeFlip()
         })
 
         this.setInteractive()
@@ -83,30 +78,25 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private synchronizeFlip() {
-        this.scene.events.on('update', () => {
-            const firstIsFurther = getRelativePositionPoints(
-                { x: this.x },
-                { x: this.positionMouse.x }
-            )
+        const firstIsFurther = getRelativePositionPoints({ x: this.x }, { x: this.positionMouse.x })
 
-            if (firstIsFurther) {
-                this.setFlipX(true)
-            } else {
-                this.setFlipX(false)
-            }
-        })
+        if (firstIsFurther) {
+            this.setFlipX(true)
+        } else {
+            this.setFlipX(false)
+        }
     }
 
     private run() {
         this.bodyThis.setVelocityX(0)
 
-        if (this.keys.moveRight.isDown) {
+        if (this.controlHandler.keys.moveRight.isDown) {
             this.dodge(1)
             const speedLocal = this.isCrouching ? this.speed / 2 : this.speed
             this.bodyThis.setVelocityX(speedLocal)
             this.setFlipX(false)
             this.anims.play('run', true)
-        } else if (this.keys.moveLeft.isDown) {
+        } else if (this.controlHandler.keys.moveLeft.isDown) {
             this.dodge(-1)
             const speedLocal = this.isCrouching ? this.speed / 2 : this.speed
             this.bodyThis.setVelocityX(-speedLocal)
@@ -120,11 +110,11 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private crouching() {
         const thisBody = this.body as Phaser.Physics.Arcade.Body
 
-        if (Phaser.Input.Keyboard.JustUp(this.keys.crouch)) {
+        if (Phaser.Input.Keyboard.JustUp(this.controlHandler.keys.crouch)) {
             this.setPosition(this.x, this.y - 1)
         }
 
-        if (this.keys.crouch.isDown) {
+        if (this.controlHandler.keys.crouch.isDown) {
             this.isCrouching = true
             this.setScale(0.7)
             thisBody.setOffset(0, 1)
@@ -136,7 +126,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private jump() {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.jump)) {
+        if (Phaser.Input.Keyboard.JustDown(this.controlHandler.keys.jump)) {
             if (
                 this.isJumping &&
                 this.currentCountJumps > 0 &&
@@ -157,7 +147,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private dodge(direction: number) {
-        if (Phaser.Input.Keyboard.JustDown(this.keys.jerk)) {
+        if (Phaser.Input.Keyboard.JustDown(this.controlHandler.keys.jerk)) {
             this.setX(this.x + this.dodgeDistanceX * direction)
         }
     }
@@ -166,6 +156,14 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         if (this.isAttacking) return
         this.attackRectangle.activate(this.positionMouse)
         this.isAttacking = true
+
+        this.enemies.forEach((enemy) => {
+            const isColliding = this.scene.physics.overlap(this.attackRectangle, enemy)
+
+            if (isColliding) {
+                enemy.health.minus(this.attackDamage)
+            }
+        })
 
         this.scene.time.delayedCall(10, () => {
             this.isAttacking = false

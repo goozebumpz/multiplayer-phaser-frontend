@@ -1,24 +1,28 @@
 import Phaser from 'phaser'
+import { Igor } from '@classes/persons/Igor'
+import { CharacterBase } from '@classes/character-base'
 import { ScenesKeys } from './config.ts'
-import { Igor } from '../classes/persons/Igor'
-import { CharacterBase } from '../classes/character-base/index.ts'
 
 class Laboratory extends Phaser.Scene {
-    person: CharacterBase
-    textPosition: Phaser.GameObjects.Text
+    person1: CharacterBase
+    person2: CharacterBase
 
     constructor() {
         super({ key: ScenesKeys.LABORATORY })
     }
 
     create() {
-        this.person = new Igor(this, 50, 50)
+        this.person1 = new Igor(this, 50, 50)
+        this.person2 = new Igor(this, 100, 50)
+        this.person1.enemies = [this.person2]
+        this.person2.enemies = [this.person1]
+
         this.createPlatforms()
     }
 
     update() {
-        this.person.move()
-        this.textPosition.setText(`Position x - ${this.person.x}, y - ${this.person.y.toFixed(0)}`)
+        this.person1.move()
+        this.person2.move()
     }
 
     private createPlatforms() {
@@ -35,15 +39,13 @@ class Laboratory extends Phaser.Scene {
         this.physics.add.existing(platform2, true)
         this.physics.add.existing(platform3, true)
 
-        this.physics.add.collider(this.person, platform1)
-        this.physics.add.collider(this.person, platform2)
-        this.physics.add.collider(this.person, platform3)
+        this.physics.add.collider(this.person1, platform1)
+        this.physics.add.collider(this.person1, platform2)
+        this.physics.add.collider(this.person1, platform3)
 
-        this.textPosition = this.add.text(
-            Number(this.game.config.width) / 2,
-            20,
-            `Position x - ${this.person.x}, y - ${this.person.y}`
-        )
+        this.physics.add.collider(this.person2, platform1)
+        this.physics.add.collider(this.person2, platform2)
+        this.physics.add.collider(this.person2, platform3)
     }
 }
 

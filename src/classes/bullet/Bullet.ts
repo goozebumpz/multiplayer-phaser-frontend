@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import Person from './Person.ts'
+import { CharacterBase } from '@classes/character-base'
 
 interface BulletConstructorT {
     scene: Phaser.Scene
@@ -9,7 +9,7 @@ interface BulletConstructorT {
     height: number
     speed: number
     damage: number
-    sender: Person | null
+    sender: CharacterBase | null
 }
 
 interface BulletI {
@@ -19,7 +19,7 @@ interface BulletI {
 class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     damage: number
     speed: number
-    sender: Person | null
+    sender: CharacterBase | null
 
     constructor(constructor: BulletConstructorT) {
         const { scene, x, y, width, height, speed, damage, sender } = constructor
@@ -49,8 +49,6 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     remove() {
         const thisBody = this.body as Phaser.Physics.Arcade.Body
         thisBody.setEnable(false)
-        this.setVisible(false)
-        this.setActive(false)
     }
 }
 

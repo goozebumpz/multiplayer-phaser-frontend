@@ -9,7 +9,7 @@ class Health {
 
     constructor(data: HealthConstructor) {
         const { scene, health, target } = data
-        this.health = 20
+        this.health = 100
         this.maxHealth = health
         this.target = target
         this.bar = new Phaser.GameObjects.Graphics(scene)
@@ -17,7 +17,7 @@ class Health {
     }
 
     public minus(damage: number) {
-        this.health += damage
+        this.health -= damage
     }
 
     public plus(health: number) {
@@ -30,13 +30,16 @@ class Health {
     }
 
     public attachToTarget() {
-        this.bar.clear()
+        this.bar.clear() // Очищаем предыдущий рисунок
 
-        this.bar.fillStyle(0xff0000)
+        // Рисуем красную полосу (фон, максимальное здоровье)
+        this.bar.fillStyle(0xff0000) // Красный цвет
         this.bar.fillRect(this.target.x - 25, this.target.y - 40, 50, 3)
 
-        this.bar.fillStyle(0x04ff00)
-        this.bar.fillRect(this.bar.x - 25, this.bar.y - 40, (this.health / this.maxHealth) * 50, 3)
+        // Рисуем серую полосу (текущее здоровье) поверх красной
+        this.bar.fillStyle(0xcccccc) // Серый цвет
+        const healthWidth = (this.health / this.maxHealth) * 50 // Ширина пропорциональна здоровью
+        this.bar.fillRect(this.target.x - 25, this.target.y - 40, healthWidth, 3)
     }
 }
 
