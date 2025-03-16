@@ -2,21 +2,28 @@ import Phaser from 'phaser'
 import { HealthConstructor } from './types.ts'
 
 class Health {
+    scene: Phaser.Scene
     health: number
     maxHealth: number
-    bar: Phaser.GameObjects.Graphics
+    healthBar: Phaser.GameObjects.Rectangle
+    backgroundBar: Phaser.GameObjects.Rectangle
     target: Phaser.Physics.Arcade.Sprite
 
     constructor(data: HealthConstructor) {
         const { scene, health, target } = data
-        this.health = 100
+        this.scene = scene
+        this.health = health
         this.maxHealth = health
         this.target = target
-        this.bar = new Phaser.GameObjects.Graphics(scene)
-        scene.add.existing(this.bar)
+
+        this.generateBar()
     }
 
     public minus(damage: number) {
+        if (this.health - damage <= 0) {
+            this.health = 0
+            return
+        }
         this.health -= damage
     }
 
@@ -30,16 +37,21 @@ class Health {
     }
 
     public attachToTarget() {
-        this.bar.clear() // Очищаем предыдущий рисунок
+        this.backgroundBar.setPosition(this.target.x - 25, this.target.y - 40)
+        this.healthBar.setPosition(this.target.x - 25, this.target.y - 40)
 
-        // Рисуем красную полосу (фон, максимальное здоровье)
-        this.bar.fillStyle(0xff0000) // Красный цвет
-        this.bar.fillRect(this.target.x - 25, this.target.y - 40, 50, 3)
+        const healthWidth = (this.health / this.maxHealth) * 50
+        this.healthBar.setSize(healthWidth, 3)
+    }
 
-        // Рисуем серую полосу (текущее здоровье) поверх красной
-        this.bar.fillStyle(0xcccccc) // Серый цвет
-        const healthWidth = (this.health / this.maxHealth) * 50 // Ширина пропорциональна здоровью
-        this.bar.fillRect(this.target.x - 25, this.target.y - 40, healthWidth, 3)
+    private generateBar() {
+        this.healthBar = this.scene.add
+            .rectangle(this.target.x - 25, this.target.y - 40, 50, 3, 0xff0000)
+            .setOrigin(0, 0.5)
+
+        this.backgroundBar = this.scene.add
+            .rectangle(this.target.x - 25, this.target.y - 40, 50, 3, 0xcccccc)
+            .setOrigin(0, 0.5)
     }
 }
 

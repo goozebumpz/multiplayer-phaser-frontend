@@ -2,27 +2,32 @@ import Phaser from 'phaser'
 import { Igor } from '@classes/persons/Igor'
 import { CharacterBase } from '@classes/character-base'
 import { ScenesKeys } from './config.ts'
+import { Shotgun } from '@classes/shotgun'
+import { Ak47 } from '../entities/ak47.ts'
 
 class Laboratory extends Phaser.Scene {
-    person1: CharacterBase
-    person2: CharacterBase
+    person: CharacterBase
+    guns: Shotgun[] = []
+    platforms: Phaser.GameObjects.Rectangle[]
 
     constructor() {
         super({ key: ScenesKeys.LABORATORY })
     }
 
     create() {
-        this.person1 = new Igor(this, 50, 50)
-        this.person2 = new Igor(this, 100, 50)
-        this.person1.enemies = [this.person2]
-        this.person2.enemies = [this.person1]
-
+        this.person = new Igor(this, 50, 50)
         this.createPlatforms()
+        this.createGuns()
+        this.createCollisionsPlayerGuns()
+
+        const camera = this.cameras.main
+        camera.zoom = 2
+        camera.startFollow(this.person)
+        camera.setBounds(0, 0, Number(this.game.config.width), Number(this.game.config.height))
     }
 
     update() {
-        this.person1.move()
-        this.person2.move()
+        this.person.move()
     }
 
     private createPlatforms() {
@@ -35,17 +40,36 @@ class Laboratory extends Phaser.Scene {
             10,
             0xccccc
         )
-        this.physics.add.existing(platform1, true)
-        this.physics.add.existing(platform2, true)
-        this.physics.add.existing(platform3, true)
 
-        this.physics.add.collider(this.person1, platform1)
-        this.physics.add.collider(this.person1, platform2)
-        this.physics.add.collider(this.person1, platform3)
+        this.platforms = [platform1, platform2, platform3]
 
-        this.physics.add.collider(this.person2, platform1)
-        this.physics.add.collider(this.person2, platform2)
-        this.physics.add.collider(this.person2, platform3)
+        this.platforms.forEach((platform) => {
+            this.physics.add.existing(platform, true)
+        })
+
+        this.platforms.forEach((platform) => {
+            this.physics.add.collider(this.person, platform)
+        })
+    }
+
+    private createCollisionsPlayerGuns() {
+        this.guns.forEach((gun) => {
+            this.physics.add.overlap(this.person, gun, () => {
+                gun.pickup(this.person)
+                this.person.setGun(gun)
+            })
+        })
+    }
+
+    private createGuns = () => {
+        const gun = new Ak47({ scene: this, x: 200, y: 300 })
+        this.guns.push(gun)
+
+        this.platforms.forEach((platform) => {
+            this.guns.forEach((gun) => {
+                this.physics.add.collider(platform, gun)
+            })
+        })
     }
 }
 

@@ -7,26 +7,43 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     ammo: number
     isReloading: boolean
     character: CharacterBase | null
+    width = 10
+    height = 10
+    offsetPosition = { x: 4, y: 5 }
 
     constructor(data: ShotgunConstructor) {
         const { scene, x, y, texture } = data
         super(scene, x, y, texture)
+
+        this.init()
     }
 
-    init() {
-        this.synchronizePosition()
+    public init() {
+        this.scene.add.existing(this)
+        this.scene.physics.add.existing(this)
+
+        this.width = 32
+        this.height = 10
     }
 
-    private synchronizePosition() {
-        this.scene.events.on('update', () => {
-            if (this.character) {
-                this.x = this.character.x
-                this.y = this.character.y
+    public attachToPerson() {
+        if (this.character) {
+            const flipPersonX = this.character.flipX
+
+            this.setFlipX(flipPersonX)
+
+            if (flipPersonX) {
+                this.setPosition(this.character.x, this.character.y + this.offsetPosition.y)
+            } else {
+                this.setPosition(this.character.x, this.character.y + this.offsetPosition.y)
             }
-        })
+        }
     }
 
     public pickup(character: CharacterBase) {
+        const body = this.body as Phaser.Physics.Arcade.Body
+        body.setAllowGravity(false)
+        body.enable = false
         this.character = character
     }
 
@@ -34,10 +51,18 @@ class Shotgun extends Phaser.GameObjects.Sprite {
         if (!this.character) {
             return
         }
-
-        // const mouseX = this.character.positionMouse.x
-        // const mouseY = this.character.positionMouse.y
     }
 }
 
 export default Shotgun
+
+// enum ShotgunState {
+//     LIE = 'lie',
+//     MOVE = 'move',
+//     SHOOT = 'shoot',
+// }
+//
+// interface StateMachineShotgunI {
+//     currentState: ShotgunState
+//     changeStage: (newState: ShotgunState) => void
+// }

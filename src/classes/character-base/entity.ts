@@ -3,6 +3,7 @@ import { getRelativePositionPoints } from '@utils/getAngle.ts'
 import { AttackRectangle } from '@classes/attack-rectangle'
 import Health from '@classes/health/entity.ts'
 import { ControlCharacterHandler } from '@classes/control-character-handler'
+import { Shotgun } from '@classes/shotgun'
 import { CharacterBaseConstructor } from './types.ts'
 
 class CharacterBase extends Phaser.Physics.Arcade.Sprite {
@@ -14,6 +15,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private attackRectangle: AttackRectangle
     private animationKeys: { idle: string; move: string }
     private controlHandler: ControlCharacterHandler
+    private shotgun: Shotgun | null = null
     isJumping = false
     isCrouching = false
     dodgeDistanceX = 20
@@ -32,19 +34,24 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.health = new Health({ scene, target: this, health: 200 })
     }
 
+    public move() {
+        this.run()
+        this.crouching()
+        this.jump()
+        this.health.attachToTarget()
+        this.shotgun?.attachToPerson()
+    }
+
+    public setGun(gun: Shotgun) {
+        this.shotgun = gun
+    }
+
     private init() {
         this.createPhysics()
         this.createAttackRectangle()
         this.createControl()
         this.createAnimations()
         this.synchronizeFlip()
-    }
-
-    public move() {
-        this.run()
-        this.crouching()
-        this.jump()
-        this.health.attachToTarget()
     }
 
     private createControl() {
@@ -153,6 +160,10 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private attack() {
+        if (this.shotgun) {
+            this.shoot()
+            return
+        }
         if (this.isAttacking) return
         this.attackRectangle.activate(this.positionMouse)
         this.isAttacking = true
@@ -196,6 +207,8 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
             repeat: -1,
         })
     }
+
+    private shoot() {}
 }
 
 export default CharacterBase
