@@ -161,7 +161,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
 
     private attack() {
         if (this.shotgun) {
-            this.shoot()
+            this.shotgun.shoot()
             return
         }
         if (this.isAttacking) return
@@ -207,8 +207,6 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
             repeat: -1,
         })
     }
-
-    private shoot() {}
 }
 
 export default CharacterBase

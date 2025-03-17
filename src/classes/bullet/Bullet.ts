@@ -37,7 +37,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
             scene,
             x: shotgun.x,
             y: shotgun.y,
-            speed: 10,
+            speed: 1000,
             width: 10,
             height: 10,
             damage: 10,
@@ -54,16 +54,48 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
         this.scene.physics.add.existing<Bullet>(this)
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         bodyThis.setEnable(true)
+        bodyThis.setAllowGravity(false)
     }
 
     fly() {
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
-        bodyThis.setVelocityX(this.speed)
+        const { bulletVelocityX, bulletVelocityY } = this.calculateVelocity()
+        bodyThis.setVelocity(bulletVelocityX, bulletVelocityY)
     }
 
     remove() {
         const thisBody = this.body as Phaser.Physics.Arcade.Body
         thisBody.setEnable(false)
+    }
+
+    private calculateVelocity() {
+        if (!this.sender) {
+            return {
+                bulletVelocityX: 0,
+                bulletVelocityY: 0,
+            }
+        }
+
+        const dx = this.sender.positionMouse.x - this.sender.x
+        const dy = this.sender.positionMouse.y - this.sender.y
+
+        const distance = Phaser.Math.Distance.Between(
+            this.sender.x,
+            this.sender.y,
+            this.sender.positionMouse.x,
+            this.sender.positionMouse.y
+        )
+
+        const directionX = dx / distance
+        const directionY = dy / distance
+
+        const bulletVelocityX = directionX * this.speed
+        const bulletVelocityY = directionY * this.speed
+
+        return {
+            bulletVelocityX,
+            bulletVelocityY,
+        }
     }
 }
 

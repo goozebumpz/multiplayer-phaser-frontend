@@ -1,5 +1,6 @@
 import { CharacterBase } from '@classes/character-base'
 import { ShotgunConstructor } from './types.ts'
+import Bullet from '@classes/bullet/Bullet.ts'
 
 class Shotgun extends Phaser.GameObjects.Sprite {
     damage: number
@@ -9,7 +10,7 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     character: CharacterBase | null
     width = 10
     height = 10
-    offsetPosition = { x: 4, y: 5 }
+    offsetPosition = { x: 4, y: 7 }
 
     constructor(data: ShotgunConstructor) {
         const { scene, x, y, texture } = data
@@ -29,14 +30,27 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     public attachToPerson() {
         if (this.character) {
             const flipPersonX = this.character.flipX
+            const offsetX = flipPersonX
+                ? this.character.x - this.offsetPosition.x
+                : this.character.x + this.offsetPosition.x
 
             this.setFlipX(flipPersonX)
+            this.setPosition(offsetX, this.character.y + this.offsetPosition.y)
 
-            if (flipPersonX) {
-                this.setPosition(this.character.x, this.character.y + this.offsetPosition.y)
-            } else {
-                this.setPosition(this.character.x, this.character.y + this.offsetPosition.y)
-            }
+            const angle = flipPersonX
+                ? Phaser.Math.Angle.Between(
+                      this.character.positionMouse.x,
+                      this.character.positionMouse.y,
+                      this.x,
+                      this.y
+                  )
+                : Phaser.Math.Angle.Between(
+                      this.x,
+                      this.y,
+                      this.character.positionMouse.x,
+                      this.character.positionMouse.y
+                  )
+            this.setRotation(angle)
         }
     }
 
@@ -47,22 +61,15 @@ class Shotgun extends Phaser.GameObjects.Sprite {
         this.character = character
     }
 
-    shot() {
+    shoot() {
         if (!this.character) {
             return
         }
+
+        const bullet = Bullet.generate(this.scene, this, this.character)
+
+        bullet.fly()
     }
 }
 
 export default Shotgun
-
-// enum ShotgunState {
-//     LIE = 'lie',
-//     MOVE = 'move',
-//     SHOOT = 'shoot',
-// }
-//
-// interface StateMachineShotgunI {
-//     currentState: ShotgunState
-//     changeStage: (newState: ShotgunState) => void
-// }

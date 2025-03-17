@@ -19,11 +19,6 @@ class Laboratory extends Phaser.Scene {
         this.createPlatforms()
         this.createGuns()
         this.createCollisionsPlayerGuns()
-
-        const camera = this.cameras.main
-        camera.zoom = 2
-        camera.startFollow(this.person)
-        camera.setBounds(0, 0, Number(this.game.config.width), Number(this.game.config.height))
     }
 
     update() {
