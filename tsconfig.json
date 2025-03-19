@@ -26,7 +26,8 @@
       "@classes/*": ["src/classes/*"],
       "@scenes/*": ["src/scenes/*"],
       "@constants/*": ["src/constants/*"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@entities/*": ["src/entities/*"]
     }
   },
   "include": ["src"]

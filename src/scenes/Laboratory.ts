@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { Igor } from '@classes/persons/Igor'
+import { Igor } from '@entities/igor.ts'
 import { CharacterBase } from '@classes/character-base'
 import { ScenesKeys } from './config.ts'
 import { Shotgun } from '@classes/shotgun'

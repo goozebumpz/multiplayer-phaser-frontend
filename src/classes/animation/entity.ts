@@ -19,7 +19,7 @@ class Animation {
         this.playAnimation('idle')
     }
 
-    playAnimation(animation: string) {
+    public playAnimation(animation: string) {
         this.scene.anims.play(animation, this.target)
     }
 

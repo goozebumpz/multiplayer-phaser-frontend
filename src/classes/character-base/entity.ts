@@ -7,7 +7,7 @@ import { Shotgun } from '@classes/shotgun'
 import { CharacterBaseConstructor } from './types.ts'
 
 class CharacterBase extends Phaser.Physics.Arcade.Sprite {
-    private speed = 300
+    private readonly speed = 300
     private bodyThis: Phaser.Physics.Arcade.Body
     private maxCountJumps = 2
     private currentCountJumps = 0
@@ -18,7 +18,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     private shotgun: Shotgun | null = null
     isJumping = false
     isCrouching = false
-    dodgeDistanceX = 20
+    private readonly dodgeDistanceX = 20
     positionMouse: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0)
     isAttacking = false
     aim: Phaser.GameObjects.Text
@@ -38,6 +38,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.run()
         this.crouching()
         this.jump()
+        this.synchronizeFlip()
         this.health.attachToTarget()
         this.shotgun?.attachToPerson()
     }
@@ -51,7 +52,6 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.createAttackRectangle()
         this.createControl()
         this.createAnimations()
-        this.synchronizeFlip()
     }
 
     private createControl() {
@@ -62,7 +62,6 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
         this.scene.input.on('pointermove', (event: PointerEvent) => {
             this.positionMouse.set(event.x, event.y)
             this.aim.setPosition(event.x, event.y)
-            this.synchronizeFlip()
         })
 
         this.setInteractive()
@@ -85,13 +84,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private synchronizeFlip() {
-        const firstIsFurther = getRelativePositionPoints({ x: this.x }, { x: this.positionMouse.x })
-
-        if (firstIsFurther) {
-            this.setFlipX(true)
-        } else {
-            this.setFlipX(false)
-        }
+        this.setFlipX(getRelativePositionPoints({ x: this.x }, { x: this.positionMouse.x }))
     }
 
     private run() {
@@ -154,7 +147,8 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
     }
 
     private dodge(direction: number) {
-        if (Phaser.Input.Keyboard.JustDown(this.controlHandler.keys.jerk)) {
+        const { jerk } = this.controlHandler.keys
+        if (Phaser.Input.Keyboard.JustDown(jerk)) {
             this.setX(this.x + this.dodgeDistanceX * direction)
         }
     }
@@ -164,6 +158,7 @@ class CharacterBase extends Phaser.Physics.Arcade.Sprite {
             this.shotgun.shoot()
             return
         }
+
         if (this.isAttacking) return
         this.attackRectangle.activate(this.positionMouse)
         this.isAttacking = true

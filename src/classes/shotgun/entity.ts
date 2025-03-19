@@ -1,16 +1,15 @@
 import { CharacterBase } from '@classes/character-base'
+import { Bullet } from '@classes/bullet'
 import { ShotgunConstructor } from './types.ts'
-import Bullet from '@classes/bullet/Bullet.ts'
 
 class Shotgun extends Phaser.GameObjects.Sprite {
     damage: number
     fireRate: number
-    ammo: number
-    isReloading: boolean
     character: CharacterBase | null
-    width = 10
-    height = 10
+    width = 5
+    height = 5
     offsetPosition = { x: 4, y: 7 }
+    readonly maxAmmo: number
 
     constructor(data: ShotgunConstructor) {
         const { scene, x, y, texture } = data
@@ -67,7 +66,6 @@ class Shotgun extends Phaser.GameObjects.Sprite {
         }
 
         const bullet = Bullet.generate(this.scene, this, this.character)
-
         bullet.fly()
     }
 }
