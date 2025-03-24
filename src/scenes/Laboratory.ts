@@ -1,9 +1,9 @@
 import Phaser from 'phaser'
 import { Igor } from '@entities/igor.ts'
+import { Ak47 } from '@entities/ak47.ts'
 import { CharacterBase } from '@classes/character-base'
-import { ScenesKeys } from './config.ts'
 import { Shotgun } from '@classes/shotgun'
-import { Ak47 } from '../entities/ak47.ts'
+import { ScenesKeys } from './config.ts'
 
 class Laboratory extends Phaser.Scene {
     person: CharacterBase

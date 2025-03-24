@@ -1,8 +1,8 @@
 import Phaser from 'phaser'
-import { getRelativePositionPoints } from '@utils/getAngle.ts'
 import { AttackRectangle } from '@classes/attack-rectangle'
-import Health from '@classes/health/entity.ts'
 import { ControlCharacterHandler } from '@classes/control-character-handler'
+import { getRelativePositionPoints } from '@utils/getAngle.ts'
+import { Health } from '@classes/health'
 import { Shotgun } from '@classes/shotgun'
 import { CharacterBaseConstructor } from './types.ts'
 

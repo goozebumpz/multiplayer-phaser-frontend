@@ -1,22 +1,7 @@
 import Phaser from 'phaser'
 import { CharacterBase } from '@classes/character-base'
 import { Shotgun } from '@classes/shotgun'
-
-type BulletConstructor = {
-    scene: Phaser.Scene
-    x: number
-    y: number
-    width: number
-    height: number
-    speed: number
-    damage: number
-    sender: CharacterBase | null
-    lifetime: number
-}
-
-interface BulletI {
-    fly: () => void
-}
+import { BulletConstructor, BulletI } from './types'
 
 class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     damage: number
@@ -38,6 +23,8 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     static generate(scene: Phaser.Scene, shotgun: Shotgun, sender: CharacterBase) {
         return new Bullet({
             scene,
+            sender,
+            shotgun,
             x: shotgun.x,
             y: shotgun.y,
             speed: 500,
@@ -45,7 +32,6 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
             height: 10,
             damage: 10,
             lifetime: 2000,
-            sender,
         })
     }
 
@@ -56,6 +42,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     private setupPhysics() {
         this.scene.add.existing(this)
         this.scene.physics.add.existing<Bullet>(this)
+
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         bodyThis.setEnable(true)
         bodyThis.setAllowGravity(false)
@@ -64,6 +51,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     fly() {
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         const { bulletVelocityX, bulletVelocityY } = this.calculateVelocity()
+
         bodyThis.setVelocity(bulletVelocityX, bulletVelocityY)
 
         this.scene.time.delayedCall(this.shotgun.fireRate, () => {
