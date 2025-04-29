@@ -11,12 +11,13 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     lifetime: number
 
     constructor(constructor: BulletConstructor) {
-        const { scene, x, y, width, height, speed, damage, sender, lifetime } = constructor
+        const { scene, x, y, width, height, speed, damage, sender, lifetime, shotgun } = constructor
         super(scene, x, y, width, height)
         this.speed = speed
         this.damage = damage
         this.sender = sender
         this.lifetime = lifetime
+        this.shotgun = shotgun
         this.init()
     }
 
@@ -37,6 +38,17 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
 
     private init() {
         this.setupPhysics()
+        this.scene.events.on('update', this.onUpdate)
+    }
+
+    private onUpdate() {
+        if (!this.body) return
+
+        const body = this.body as Phaser.Physics.Arcade.Body
+
+        if ((body && body.left) || body.bottom || body.top || body.right) {
+            this.setAlive(false)
+        }
     }
 
     private setupPhysics() {
@@ -44,7 +56,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
         this.scene.physics.add.existing<Bullet>(this)
 
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
-        bodyThis.setEnable(true)
+        this.setAlive(true)
         bodyThis.setAllowGravity(false)
     }
 
@@ -53,6 +65,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
         const { bulletVelocityX, bulletVelocityY } = this.calculateVelocity()
 
         bodyThis.setVelocity(bulletVelocityX, bulletVelocityY)
+        this.setAngle()
 
         this.scene.time.delayedCall(this.shotgun.fireRate, () => {
             this.setAlive(false)

@@ -3,4 +3,5 @@ export type ShotgunConstructor = {
     x: number
     y: number
     texture: string
+    fireRate: number
 }

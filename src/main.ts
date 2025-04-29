@@ -4,8 +4,8 @@ import PreloadScene from './scenes/PreloadScene.ts'
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
-    width: 640,
-    height: 360,
+    width: 1280,
+    height: 720,
     scene: [PreloadScene, Laboratory],
     physics: {
         default: 'arcade',

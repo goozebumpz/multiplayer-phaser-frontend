@@ -12,8 +12,9 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     readonly maxAmmo: number
 
     constructor(data: ShotgunConstructor) {
-        const { scene, x, y, texture } = data
+        const { scene, x, y, texture, fireRate } = data
         super(scene, x, y, texture)
+        this.fireRate = fireRate
 
         this.init()
     }
