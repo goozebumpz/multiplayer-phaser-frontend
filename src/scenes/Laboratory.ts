@@ -45,6 +45,8 @@ class Laboratory extends Phaser.Scene {
         this.platforms.forEach((platform) => {
             this.physics.add.collider(this.person, platform)
         })
+
+        this.registry.set('platforms', this.platforms)
     }
 
     private createCollisionsPlayerGuns() {

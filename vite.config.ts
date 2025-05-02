@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import path from 'path'
 
 export default defineConfig({
+    server: {
+        port: 3003,
+    },
     resolve: {
         alias: {
             '@classes': path.resolve(__dirname, './src/classes'),

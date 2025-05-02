@@ -1,43 +1,54 @@
 import Phaser from 'phaser'
 import { CharacterBase } from '@classes/character-base'
 import { Shotgun } from '@classes/shotgun'
-import { BulletConstructor, BulletI } from './types'
+import { BulletConstructor, BulletI, BulletParams } from './types'
 
 class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
-    damage: number
     speed: number
     sender: CharacterBase | null
     shotgun: Shotgun
     lifetime: number
 
     constructor(constructor: BulletConstructor) {
-        const { scene, x, y, width, height, speed, damage, sender, lifetime, shotgun } = constructor
+        const {
+            scene,
+            x,
+            y,
+            width,
+            height,
+            speed,
+            sender,
+            lifetime,
+            shotgun,
+            allowToGravitation = false,
+        } = constructor
         super(scene, x, y, width, height)
         this.speed = speed
-        this.damage = damage
         this.sender = sender
         this.lifetime = lifetime
         this.shotgun = shotgun
-        this.init()
+
+        this.init(allowToGravitation)
     }
 
-    static generate(scene: Phaser.Scene, shotgun: Shotgun, sender: CharacterBase) {
+    static generate(
+        scene: Phaser.Scene,
+        shotgun: Shotgun,
+        sender: CharacterBase,
+        bulletParams: BulletParams
+    ) {
         return new Bullet({
             scene,
             sender,
             shotgun,
             x: shotgun.x,
             y: shotgun.y,
-            speed: 500,
-            width: 10,
-            height: 10,
-            damage: 10,
-            lifetime: 2000,
+            ...bulletParams,
         })
     }
 
-    private init() {
-        this.setupPhysics()
+    private init(allowGravity: boolean) {
+        this.setupPhysics(allowGravity)
         this.scene.events.on('update', this.onUpdate)
     }
 
@@ -51,13 +62,23 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
         }
     }
 
-    private setupPhysics() {
+    private setupPhysics(allowGravity: boolean) {
         this.scene.add.existing(this)
         this.scene.physics.add.existing<Bullet>(this)
 
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         this.setAlive(true)
-        bodyThis.setAllowGravity(false)
+        bodyThis.setAllowGravity(allowGravity)
+
+        const platforms = this.scene.registry.get('platforms') as Phaser.GameObjects.Rectangle[]
+
+        if (!platforms) {
+            console.error('What a fuck ??? Where platforms ?')
+        }
+
+        platforms.forEach((platform) => {
+            this.scene.physics.add.overlap(platform, this, () => this.setAlive(false))
+        })
     }
 
     fly() {
@@ -67,7 +88,7 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
         bodyThis.setVelocity(bulletVelocityX, bulletVelocityY)
         this.setAngle()
 
-        this.scene.time.delayedCall(this.shotgun.fireRate, () => {
+        this.scene.time.delayedCall(this.lifetime, () => {
             this.setAlive(false)
         })
     }

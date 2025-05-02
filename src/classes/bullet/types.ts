@@ -12,8 +12,14 @@ export type BulletConstructor = {
     sender: CharacterBase
     shotgun: Shotgun
     lifetime: number
+    allowToGravitation?: boolean
 }
 
 export interface BulletI {
     fly: () => void
 }
+
+export type BulletParams = Pick<
+    BulletConstructor,
+    'width' | 'height' | 'lifetime' | 'damage' | 'speed' | 'allowToGravitation'
+>

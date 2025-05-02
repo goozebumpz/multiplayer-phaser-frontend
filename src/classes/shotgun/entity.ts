@@ -1,6 +1,7 @@
 import { CharacterBase } from '@classes/character-base'
 import { Bullet } from '@classes/bullet'
 import { ShotgunConstructor } from './types.ts'
+import { BulletParams } from '@classes/bullet/types.ts'
 
 class Shotgun extends Phaser.GameObjects.Sprite {
     damage: number
@@ -9,13 +10,17 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     width = 5
     height = 5
     offsetPosition = { x: 4, y: 7 }
+    canShoot: boolean = true
+    timerShoot: Phaser.Time.TimerEvent
+    readonly bulletParams: BulletParams
     readonly maxAmmo: number
 
     constructor(data: ShotgunConstructor) {
-        const { scene, x, y, texture, fireRate } = data
+        const { scene, x, y, texture, fireRate, bulletParams, damage } = data
         super(scene, x, y, texture)
         this.fireRate = fireRate
-
+        this.damage = damage
+        this.bulletParams = bulletParams
         this.init()
     }
 
@@ -62,12 +67,16 @@ class Shotgun extends Phaser.GameObjects.Sprite {
     }
 
     shoot() {
-        if (!this.character) {
+        if (!this.character || !this.canShoot) {
             return
         }
 
-        const bullet = Bullet.generate(this.scene, this, this.character)
+        const bullet = Bullet.generate(this.scene, this, this.character, this.bulletParams)
         bullet.fly()
+        this.canShoot = false
+        this.timerShoot = this.scene.time.delayedCall(this.fireRate, () => {
+            this.canShoot = true
+        })
     }
 }
 
