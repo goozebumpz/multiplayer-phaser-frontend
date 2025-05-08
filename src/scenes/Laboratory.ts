@@ -1,12 +1,15 @@
 import Phaser from 'phaser'
-import { Igor } from '@entities/igor.ts'
-import { Ak47 } from '@entities/ak47.ts'
+import { Igor } from '@entities/igor'
+import { Ak47 } from '@entities/ak47'
+import { Enemy } from '@classes/enemy'
 import { CharacterBase } from '@classes/character-base'
 import { Shotgun } from '@classes/shotgun'
-import { ScenesKeys } from './config.ts'
+import { ScenesKeys } from './config'
+import { RegistryKeys } from '@constants/registry'
 
 class Laboratory extends Phaser.Scene {
     person: CharacterBase
+    enemies: Enemy[]
     guns: Shotgun[] = []
     platforms: Phaser.GameObjects.Rectangle[]
 
@@ -16,13 +19,18 @@ class Laboratory extends Phaser.Scene {
 
     create() {
         this.person = new Igor(this, 50, 50)
+        this.enemies = new Array(5).fill(
+            new Enemy({ scene: this, x: 20, y: 20, target: this.person, texture: '' })
+        )
         this.createPlatforms()
         this.createGuns()
         this.createCollisionsPlayerGuns()
+        this.createCollisionsEnemies()
     }
 
     update() {
         this.person.move()
+        this.enemies.forEach((enemy) => enemy.update())
     }
 
     private createPlatforms() {
@@ -37,16 +45,14 @@ class Laboratory extends Phaser.Scene {
         )
 
         this.platforms = [platform1, platform2, platform3]
-
         this.platforms.forEach((platform) => {
             this.physics.add.existing(platform, true)
         })
-
         this.platforms.forEach((platform) => {
             this.physics.add.collider(this.person, platform)
         })
 
-        this.registry.set('platforms', this.platforms)
+        this.registry.set(RegistryKeys.PLATFORMS, this.platforms)
     }
 
     private createCollisionsPlayerGuns() {
@@ -56,6 +62,16 @@ class Laboratory extends Phaser.Scene {
                 this.person.setGun(gun)
             })
         })
+    }
+
+    private createCollisionsEnemies() {
+        this.enemies.forEach((enemy) => {
+            this.platforms.forEach((platform) => {
+                this.physics.add.collider(enemy, platform)
+            })
+        })
+
+        this.registry.set(RegistryKeys.ENEMIES, this.enemies)
     }
 
     private createGuns = () => {
