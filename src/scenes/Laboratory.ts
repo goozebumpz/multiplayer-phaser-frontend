@@ -9,7 +9,7 @@ import { RegistryKeys } from '@constants/registry'
 
 class Laboratory extends Phaser.Scene {
     person: CharacterBase
-    enemies: Enemy[]
+    enemies: Enemy[] = []
     guns: Shotgun[] = []
     platforms: Phaser.GameObjects.Rectangle[]
 
@@ -20,8 +20,16 @@ class Laboratory extends Phaser.Scene {
     create() {
         this.person = new Igor(this, 50, 50)
         this.enemies = new Array(5).fill(
-            new Enemy({ scene: this, x: 20, y: 20, target: this.person, texture: '' })
+            new Enemy({
+                scene: this,
+                x: 50,
+                y: 300,
+                target: this.person,
+                texture: '',
+                widthZone: 300,
+            })
         )
+        this.registry.set<Enemy[]>(RegistryKeys.ENEMIES, this.enemies)
         this.createPlatforms()
         this.createGuns()
         this.createCollisionsPlayerGuns()
