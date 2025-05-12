@@ -7,4 +7,5 @@ export type EnemyConstructor = {
     y: number
     texture: string
     target: CharacterBase | null
+    widthZone: number
 }

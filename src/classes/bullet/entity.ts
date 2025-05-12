@@ -2,6 +2,8 @@ import Phaser from 'phaser'
 import { CharacterBase } from '@classes/character-base'
 import { Shotgun } from '@classes/shotgun'
 import { BulletConstructor, BulletI, BulletParams } from './types'
+import { RegistryKeys } from '@constants/registry.ts'
+import { Enemy } from '@classes/enemy'
 
 class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
     speed: number
@@ -76,8 +78,21 @@ class Bullet extends Phaser.GameObjects.Rectangle implements BulletI {
             console.error('What a fuck ??? Where platforms ?')
         }
 
-        platforms.forEach((platform) => {
+        platforms?.forEach((platform) => {
             this.scene.physics.add.overlap(platform, this, () => this.setAlive(false))
+        })
+
+        const enemies = this.scene.registry.get(RegistryKeys.ENEMIES) as Enemy[]
+
+        if (!enemies) {
+            console.error('What a fuck ??? Where enemies ?')
+        }
+
+        enemies?.forEach((enemy) => {
+            this.scene.physics.add.overlap(enemy, this, () => {
+                this.setAlive(false)
+                enemy.health.minus(this.shotgun.damage, () => enemy.setAlive(false))
+            })
         })
     }
 

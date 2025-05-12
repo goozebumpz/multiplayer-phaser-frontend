@@ -15,13 +15,13 @@ class Health {
         this.health = health
         this.maxHealth = health
         this.target = target
-
         this.generateBar()
     }
 
-    public minus(damage: number) {
+    public minus(damage: number, onEndHealth?: () => void) {
         if (this.health - damage <= 0) {
             this.health = 0
+            onEndHealth?.()
             return
         }
         this.health -= damage
@@ -41,18 +41,20 @@ class Health {
         this.healthBar.setPosition(this.target.x - 25, this.target.y - 40)
 
         const healthWidth = (this.health / this.maxHealth) * 50
-        this.healthBar.setSize(healthWidth, 3)
+        this.healthBar.setSize(healthWidth, 5)
     }
 
     private generateBar() {
-        this.healthBar = this.scene.add
-            .rectangle(this.target.x - 25, this.target.y - 40, 50, 3, 0xff0000)
+        this.backgroundBar = this.scene.add
+            .rectangle(this.target.x - 25, this.target.y - 40, 50, 5, 0xff0000)
             .setOrigin(0, 0.5)
 
-        this.backgroundBar = this.scene.add
-            .rectangle(this.target.x - 25, this.target.y - 40, 50, 3, 0xcccccc)
+        this.healthBar = this.scene.add
+            .rectangle(this.target.x - 25, this.target.y - 40, 50, 5, 0x008000)
             .setOrigin(0, 0.5)
     }
+
+    destroyHealthBar() {}
 }
 
 export default Health
