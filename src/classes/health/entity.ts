@@ -5,8 +5,8 @@ class Health {
     scene: Phaser.Scene
     health: number
     maxHealth: number
-    healthBar: Phaser.GameObjects.Rectangle
-    backgroundBar: Phaser.GameObjects.Rectangle
+    healthBar: Phaser.GameObjects.Rectangle | null = null
+    backgroundBar: Phaser.GameObjects.Rectangle | null = null
     target: Phaser.Physics.Arcade.Sprite
 
     constructor(data: HealthConstructor) {
@@ -37,6 +37,8 @@ class Health {
     }
 
     public attachToTarget() {
+        if (!this.healthBar || !this.backgroundBar) return
+
         this.backgroundBar.setPosition(this.target.x - 25, this.target.y - 40)
         this.healthBar.setPosition(this.target.x - 25, this.target.y - 40)
 
@@ -54,7 +56,12 @@ class Health {
             .setOrigin(0, 0.5)
     }
 
-    destroyHealthBar() {}
+    destroyHealthBar() {
+        this.healthBar!.destroy(true)
+        this.backgroundBar!.destroy(true)
+        this.healthBar = null
+        this.backgroundBar = null
+    }
 }
 
 export default Health

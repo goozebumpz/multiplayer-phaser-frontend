@@ -1,19 +1,16 @@
-// import { CharacterBase } from '@classes/character-base'
+import Phaser from 'phaser'
 import { EnemyConstructor } from './types'
 import { Health } from '@classes/health'
-import Phaser from 'phaser'
 
 class Enemy extends Phaser.Physics.Arcade.Sprite {
     private velocityDirection: 1 | -1 = 1
     health: Health
 
-    // Patrol properties
     private startPatrolX: number
-    private distancePatrol: number = 150
+    private distancePatrol: number = 40
     private directoryPatrol: 1 | -1 = 1
     private positionPatrol: 'left' | 'right' = 'right'
 
-    // Detect character properties
     private visionZone: Phaser.GameObjects.Zone
     private widthZone: number
 
@@ -36,7 +33,7 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
             health: 100,
         })
 
-        this.visionZone = this.scene.add.zone(this.x, this.y, this.widthZone, this.widthZone)
+        this.visionZone = this.scene.add.zone(this.x, this.y, this.widthZone, this.height)
         this.scene.physics.add.existing(this.visionZone)
         const bodyZone = this.visionZone.body as Phaser.Physics.Arcade.Body
         // bodyZone.setCircle(this.visionRadius)
@@ -49,8 +46,12 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     private synchronizeVisionZone() {
-        // const x = this.positionPatrol === 'right' ? 20 + this.width : this.x - 20
-        this.visionZone.setPosition(this.x, this.y)
+        console.log(this.positionPatrol)
+        const x =
+            this.positionPatrol === 'right'
+                ? this.x + this.width + this.widthZone / 2
+                : this.x - this.widthZone / 2 - this.width
+        this.visionZone.setPosition(x, this.y)
     }
 
     private patrol() {
@@ -75,6 +76,10 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setVisible(alive)
         const bodyThis = this.body as Phaser.Physics.Arcade.Body
         bodyThis.enable = alive
+
+        if (!alive) {
+            this.health.destroyHealthBar()
+        }
     }
 }
 
